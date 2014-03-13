@@ -11,12 +11,14 @@ function GameManager(size, InputManager, Actuator, ScoreManager) {
 
   this.inputManager.on("quicksave", this.quicksave.bind(this));
   this.inputManager.on("quickload", this.quickload.bind(this));
+  this.inputManager.on("deleteButton", this.deleteButton.bind(this));
 
   this.quicksaveGrid = {};
   this.quicksaveScore = 0;
   this.quicksaveOver = false;
   this.quicksaveWon = false;
 
+  this.saves = {};
 
   this.setup();
 }
@@ -37,6 +39,9 @@ GameManager.prototype.setup = function () {
 
   // Add the initial tiles
   this.addStartTiles();
+
+  this.loadSaves();
+  this.updateSavesList();
 
   // Update the actuator
   this.actuate();
@@ -80,14 +85,14 @@ GameManager.prototype.quicksave = function () {
   // Backup other values
   this.quicksaveScore = this.score;
   this.quicksaveOver = this.over;
-  this.quicksaveWon = this.won;  
+  this.quicksaveWon = this.won;
+  this.createNewSave();
 };
 // Quickload
 GameManager.prototype.quickload = function () {
-    if (this.quicksaveGrid.cells == undefined) {
-        alert("There is no quick save.");
-        return;
-    }
+  if (!this.restoreSave()) {
+      return;
+  }
   // Check if game over
   if (this.over) {
     this.actuator.restart();
@@ -108,6 +113,22 @@ GameManager.prototype.quickload = function () {
   });
 
 };
+
+GameManager.prototype.deleteButton = function () {
+    var list = document.getElementsByClassName("saves-container")[0];
+    if (list.selectedIndex == -1) {
+        alert("Hey, no save is selected!");
+        return;
+    }
+    var key = list.options[list.selectedIndex].value;
+    if (!confirm("Are you sure?")) {
+        return;
+    }
+    delete this.saves[key];
+    this.scoreManager.saveSaves(this.saves);
+    this.updateSavesList();
+}
+
 // Copy this.grid into this.quicksaveGrid
 GameManager.prototype.quicksaveGridCopy = function () {
   this.quicksaveGrid = new Grid(this.size);
@@ -121,6 +142,66 @@ GameManager.prototype.quicksaveGridCopy = function () {
   }
 };
 
+GameManager.prototype.createNewSave = function () {
+    var key = new Date().getTime();
+    this.saves[key] = {
+        score: this.quicksaveScore,
+        over:  this.quicksaveOver,
+        won:   this.quicksaveWon,
+        grid:  this.quicksaveGrid
+    };
+    this.scoreManager.saveSaves(this.saves);
+    this.updateSavesList();
+};
+
+GameManager.prototype.restoreSave = function () {
+    var list = document.getElementsByClassName("saves-container")[0];
+    if (list.selectedIndex == -1) {
+        alert("Hey, no save is selected!");
+        return false;
+    }
+    if (!confirm("Are you sure?")) {
+        return false;
+    }
+    var key = list.options[list.selectedIndex].value;
+    this.quicksaveScore = this.saves[key].score;
+    this.quicksaveOver = this.saves[key].over;
+    this.quicksaveWon = this.saves[key].won;
+    this.quicksaveGrid = this.saves[key].grid;
+    return true;
+};
+
+GameManager.prototype.updateSavesList = function() {
+    var list = document.getElementsByClassName("saves-container")[0];
+    list.options.length = 0;
+    for (var key in this.saves) {
+        var option = document.createElement("option");
+        option.value = key;
+        option.innerHTML = this.prettyTitle(this.saves[key]);
+        list.appendChild(option);
+    }
+}
+
+GameManager.prototype.loadSaves = function() {
+    this.saves = this.scoreManager.loadSaves();
+    if (this.saves === undefined || !(this.saves instanceof Object)) {
+        this.saves = {};
+    }
+}
+
+GameManager.prototype.prettyTitle = function(save) {
+    console.log("my save is ", save);
+    var free = 0;
+    var grid = save.grid;
+    for (var i = 0; i < 4; i++) {
+        for (var j = 0; j < 4; j++) {
+            if (grid.cells[i][j] === null) {
+                free++;
+            }
+        }
+    }
+    return save.score + " points, " + free + "/16 free cells";
+}
 
 // Save all tile positions and remove merger info
 GameManager.prototype.prepareTiles = function () {
