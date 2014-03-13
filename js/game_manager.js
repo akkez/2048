@@ -84,6 +84,10 @@ GameManager.prototype.quicksave = function () {
 };
 // Quickload
 GameManager.prototype.quickload = function () {
+    if (this.quicksaveGrid.cells == undefined) {
+        alert("There is no quick save.");
+        return;
+    }
   // Check if game over
   if (this.over) {
     this.actuator.restart();
