@@ -121,6 +121,7 @@ GameManager.prototype.deleteButton = function () {
         return;
     }
     var key = list.options[list.selectedIndex].value;
+
     if (!confirm("Are you sure?")) {
         return;
     }
@@ -167,7 +168,15 @@ GameManager.prototype.restoreSave = function () {
     this.quicksaveScore = this.saves[key].score;
     this.quicksaveOver = this.saves[key].over;
     this.quicksaveWon = this.saves[key].won;
-    this.quicksaveGrid = this.saves[key].grid;
+    var grid = this.saves[key].grid;
+    this.quicksaveGrid = new Grid(this.size);
+    for (var x = 0; x < this.size; x++) {
+        for (var y = 0; y < this.size; y++) {
+            if (grid.cells[x][y]) {
+                this.quicksaveGrid.cells[x][y] = new Tile({ x: grid.cells[x][y].x, y: grid.cells[x][y].y }, grid.cells[x][y].value);
+            }
+        }
+    }
     return true;
 };
 
@@ -190,11 +199,10 @@ GameManager.prototype.loadSaves = function() {
 }
 
 GameManager.prototype.prettyTitle = function(save) {
-    console.log("my save is ", save);
     var free = 0;
     var grid = save.grid;
-    for (var i = 0; i < 4; i++) {
-        for (var j = 0; j < 4; j++) {
+    for (var i = 0; i < this.size; i++) {
+        for (var j = 0; j < this.size; j++) {
             if (grid.cells[i][j] === null) {
                 free++;
             }
