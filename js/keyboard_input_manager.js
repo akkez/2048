@@ -55,30 +55,33 @@ KeyboardInputManager.prototype.listen = function () {
 
   var retry = document.getElementsByClassName("retry-button")[0];
   retry.addEventListener("click", this.restart.bind(this));
+  retry.addEventListener("touchend", this.restart.bind(this));
 
   var quicksave = document.getElementsByClassName("quicksave")[0];
   quicksave.addEventListener("click", this.quicksave.bind(this));
   var quickload = document.getElementsByClassName("quickload")[0];
-  quickload.addEventListener("click", this.quickload.bind(this));
+  quickload.addEventListener("click", this.quickload.bind(this)); 
 
 
   // Listen to swipe events
   var touchStartClientX, touchStartClientY;
   var gameContainer = document.getElementsByClassName("game-container")[0];
-  gameContainer.addEventListener("touchstart", function(event) {
+
+  gameContainer.addEventListener("touchstart", function (event) {
     if (event.touches.length > 1) return;
 
     touchStartClientX = event.touches[0].clientX;
     touchStartClientY = event.touches[0].clientY;
     event.preventDefault();
   });
-  gameContainer.addEventListener("touchmove", function(event) {
+
+  gameContainer.addEventListener("touchmove", function (event) {
     event.preventDefault();
   });
-  gameContainer.addEventListener("touchend", function(event) {
-    if (event.touches.length > 0) {
-      return;
-    }
+
+  gameContainer.addEventListener("touchend", function (event) {
+    if (event.touches.length > 0) return;
+
     var dx = event.changedTouches[0].clientX - touchStartClientX;
     var absDx = Math.abs(dx);
 
