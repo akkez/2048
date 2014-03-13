@@ -26,10 +26,18 @@ function LocalScoreManager() {
 }
 
 LocalScoreManager.prototype.get = function () {
-  return this.storage.getItem(this.key) || 0;
+    return this.storage.getItem(this.key) || 0;
 };
 
 LocalScoreManager.prototype.set = function (score) {
-  this.storage.setItem(this.key, score);
+    this.storage.setItem(this.key, score);
+};
+
+LocalScoreManager.prototype.loadSaves = function () {
+    return JSON.parse(this.storage.getItem("saves"));
+};
+
+LocalScoreManager.prototype.saveSaves = function (saves) { //save saves lol
+    this.storage.setItem("saves", JSON.stringify(saves));
 };
 

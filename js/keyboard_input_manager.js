@@ -60,10 +60,11 @@ KeyboardInputManager.prototype.listen = function () {
   var quicksave = document.getElementsByClassName("quicksave")[0];
   quicksave.addEventListener("click", this.quicksave.bind(this));
   var quickload = document.getElementsByClassName("quickload")[0];
-  quickload.addEventListener("click", this.quickload.bind(this)); 
+  quickload.addEventListener("click", this.quickload.bind(this));
+  var deleteButton = document.getElementsByClassName("deleteButton")[0];
+  deleteButton.addEventListener("click", this.deleteButton.bind(this));
 
-
-  // Listen to swipe events
+    // Listen to swipe events
   var touchStartClientX, touchStartClientY;
   var gameContainer = document.getElementsByClassName("game-container")[0];
 
@@ -108,3 +109,10 @@ KeyboardInputManager.prototype.quickload = function (event) {
   event.preventDefault();
   this.emit("quickload");
 };
+
+KeyboardInputManager.prototype.deleteButton = function (event) {
+  event.preventDefault();
+  this.emit("deleteButton");
+};
+
+
