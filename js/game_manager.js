@@ -99,7 +99,8 @@ GameManager.prototype.quickload = function () {
   this.actuator.actuate(this.grid, {
     score: this.score,
     over:  this.over,
-    won:   this.won
+    won:   this.won,
+    bestScore: this.scoreManager.get()
   });
 
 };
