@@ -91,7 +91,7 @@ GameManager.prototype.quicksave = function () {
 // Quickload
 GameManager.prototype.quickload = function () {
   if (!this.restoreSave()) {
-      return;
+    return;
   }
   // Check if game over
   if (this.over) {
@@ -115,19 +115,19 @@ GameManager.prototype.quickload = function () {
 };
 
 GameManager.prototype.deleteButton = function () {
-    var list = document.getElementsByClassName("saves-container")[0];
-    if (list.selectedIndex == -1) {
-        alert("Hey, no save is selected!");
-        return;
-    }
-    var key = list.options[list.selectedIndex].value;
+  var list = document.getElementsByClassName("saves-container")[0];
+  if (list.selectedIndex == -1) {
+    alert("Hey, no save is selected!");
+    return;
+  }
+  var key = list.options[list.selectedIndex].value;
 
-    if (!confirm("Are you sure?")) {
-        return;
-    }
-    delete this.saves[key];
-    this.scoreManager.saveSaves(this.saves);
-    this.updateSavesList();
+  if (!confirm("Are you sure?")) {
+    return;
+  }
+  delete this.saves[key];
+  this.scoreManager.saveSaves(this.saves);
+  this.updateSavesList();
 }
 
 // Copy this.grid into this.quicksaveGrid
@@ -144,71 +144,84 @@ GameManager.prototype.quicksaveGridCopy = function () {
 };
 
 GameManager.prototype.createNewSave = function () {
-    var key = new Date().getTime();
-    this.saves[key] = {
-        score: this.quicksaveScore,
-        over:  this.quicksaveOver,
-        won:   this.quicksaveWon,
-        grid:  this.quicksaveGrid
-    };
-    this.scoreManager.saveSaves(this.saves);
-    this.updateSavesList();
+  var key = new Date().getTime();
+  this.saves[key] = {
+    score: this.quicksaveScore,
+    over:  this.quicksaveOver,
+    won:   this.quicksaveWon,
+    grid:  this.quicksaveGrid
+  };
+  this.scoreManager.saveSaves(this.saves);
+  this.updateSavesList();
 };
 
 GameManager.prototype.restoreSave = function () {
-    var list = document.getElementsByClassName("saves-container")[0];
-    if (list.selectedIndex == -1) {
-        alert("Hey, no save is selected!");
-        return false;
+  var list = document.getElementsByClassName("saves-container")[0];
+  if (list.selectedIndex == -1) {
+    alert("Hey, no save is selected!");
+    return false;
+  }
+  if (!confirm("Are you sure?")) {
+    return false;
+  }
+  var key = list.options[list.selectedIndex].value;
+  this.quicksaveScore = this.saves[key].score;
+  this.quicksaveOver = this.saves[key].over;
+  this.quicksaveWon = this.saves[key].won;
+  var grid = this.saves[key].grid;
+  this.quicksaveGrid = new Grid(this.size);
+  for (var x = 0; x < this.size; x++) {
+    for (var y = 0; y < this.size; y++) {
+      if (grid.cells[x][y]) {
+        this.quicksaveGrid.cells[x][y] = new Tile({ x: grid.cells[x][y].x, y: grid.cells[x][y].y }, grid.cells[x][y].value);
+      }
     }
-    if (!confirm("Are you sure?")) {
-        return false;
-    }
-    var key = list.options[list.selectedIndex].value;
-    this.quicksaveScore = this.saves[key].score;
-    this.quicksaveOver = this.saves[key].over;
-    this.quicksaveWon = this.saves[key].won;
-    var grid = this.saves[key].grid;
-    this.quicksaveGrid = new Grid(this.size);
-    for (var x = 0; x < this.size; x++) {
-        for (var y = 0; y < this.size; y++) {
-            if (grid.cells[x][y]) {
-                this.quicksaveGrid.cells[x][y] = new Tile({ x: grid.cells[x][y].x, y: grid.cells[x][y].y }, grid.cells[x][y].value);
-            }
-        }
-    }
-    return true;
+  }
+  return true;
 };
 
-GameManager.prototype.updateSavesList = function() {
-    var list = document.getElementsByClassName("saves-container")[0];
-    list.options.length = 0;
-    for (var key in this.saves) {
-        var option = document.createElement("option");
-        option.value = key;
-        option.innerHTML = this.prettyTitle(this.saves[key]);
-        list.appendChild(option);
-    }
+GameManager.prototype.updateSavesList = function () {
+  var list = document.getElementsByClassName("saves-container")[0];
+  list.options.length = 0;
+  for (var key in this.saves) {
+    var option = document.createElement("option");
+    option.value = key;
+    option.innerHTML = this.prettyTitle(this.saves[key]);
+    list.appendChild(option);
+  }
 }
 
-GameManager.prototype.loadSaves = function() {
-    this.saves = this.scoreManager.loadSaves();
-    if (this.saves === undefined || !(this.saves instanceof Object)) {
-        this.saves = {};
-    }
+GameManager.prototype.loadSaves = function () {
+  this.saves = this.scoreManager.loadSaves();
+  if (this.saves === undefined || !(this.saves instanceof Object)) {
+    this.saves = {};
+  }
 }
 
-GameManager.prototype.prettyTitle = function(save) {
-    var free = 0;
-    var grid = save.grid;
-    for (var i = 0; i < this.size; i++) {
-        for (var j = 0; j < this.size; j++) {
-            if (grid.cells[i][j] === null) {
-                free++;
-            }
-        }
+GameManager.prototype.prettyTitle = function (save) {
+  var free = 0;
+  var grid = save.grid;
+  var anyCells = [];
+  for (var i = 0; i < this.size; i++) {
+    for (var j = 0; j < this.size; j++) {
+      if (grid.cells[i][j] === null) {
+        free++;
+      } else {
+        anyCells.push(grid.cells[i][j].value);
+      }
     }
-    return save.score + " points, " + free + "/16 free cells";
+  }
+  anyCells = anyCells.sort(function (x, y) {
+    return x - y;
+  }).reverse();
+  var cellState = "";
+  for (var i = 0, asize = Math.min(5, anyCells.length); i < asize; i++) {
+    if (cellState.length > 0) {
+      cellState += "+";
+    }
+    cellState += anyCells[i];
+  }
+  return "[" + cellState + "] " + save.score + " points, " + free + " free cells";
 }
 
 // Save all tile positions and remove merger info
@@ -327,13 +340,13 @@ GameManager.prototype.findFarthestPosition = function (cell, vector) {
   // Progress towards the vector direction until an obstacle is found
   do {
     previous = cell;
-    cell     = { x: previous.x + vector.x, y: previous.y + vector.y };
+    cell = { x: previous.x + vector.x, y: previous.y + vector.y };
   } while (this.grid.withinBounds(cell) &&
-           this.grid.cellAvailable(cell));
+      this.grid.cellAvailable(cell));
 
   return {
     farthest: previous,
-    next: cell // Used to check if a merge is required
+    next:     cell // Used to check if a merge is required
   };
 };
 
