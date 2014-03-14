@@ -109,7 +109,6 @@ KeyboardInputManager.prototype.quickload = function (event) {
   event.preventDefault();
   this.emit("quickload");
 };
-
 KeyboardInputManager.prototype.deleteButton = function (event) {
   event.preventDefault();
   this.emit("deleteButton");
